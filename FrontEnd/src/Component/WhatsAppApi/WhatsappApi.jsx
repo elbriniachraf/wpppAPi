@@ -1,5 +1,6 @@
 import axios from 'axios'
 import React from 'react';
+
 import { useState } from 'react';
 
 function WhatsappApi() {
@@ -8,16 +9,15 @@ function WhatsappApi() {
 
   const header = {
     headers: {
-      Authorization : `Bearer EAAFeCJoUvOgBO6cx0vjbYFslqRKHziaVZCEZAvX9gK5WXZCMpmgTgHwhQD10gAe8LaFVClW7kSWjvEu7d52ySwEXb8wDc9jTsaztgYNeZBszwUc4H8gsA5OOyGDGIsR1RakwRE0rPmxQXlIgyCbu06TEMOKXaubFHyi0HUR8FqbVpZBHyj4ZAtJQNoLFaIW2Klfq0p0synjt7lEokZB9T6ZBdPObJBg6jLB5PScZD`,
+      Authorization : `Bearer ${process.env.REACT_APP_FACEBOOK_TOKEN}`,
       Accept: 'application/json,'
     }
   }
   const sendMessage = () => {
-      console.log("number " + number)
-      console.log("Template " + template)
+      
       const Message ={
         "messaging_product": "whatsapp",
-        "to": number,
+        "to": "212"+number.slice(1,10),
         "type": "template",
         "template": {
         "name": template,
@@ -26,7 +26,7 @@ function WhatsappApi() {
         }
     }
       }
-      axios.post('https://graph.facebook.com/v18.0/252515451286903/messages', Message, header)
+      axios.post('https://graph.facebook.com/v18.0/277469672113240/messages', Message, header)
       .then((res)=>(
         console.log("Message send success", res)
       ))
