@@ -6,6 +6,7 @@ import swal from 'sweetalert';
 function WhatsappApi() {
   const [numbers, setNumbers] = useState([]);
   const [template, setTemplate] = useState('');
+  const [fileName, setFileName] = useState('');
 
   const notify = () => swal(
     {
@@ -49,6 +50,7 @@ function WhatsappApi() {
       }
       
       setNumbers(extractedNumbers); // Set the extracted numbers
+      setFileName(file.name); // Set the file name
     };
   
     reader.readAsArrayBuffer(file);
@@ -56,8 +58,6 @@ function WhatsappApi() {
     // Clear the input field to force triggering the onChange event
     e.target.value = null;
   };
-  
-  
 
   const sendMessage = async () => {
     if (numbers.length === 0) {
@@ -100,7 +100,16 @@ function WhatsappApi() {
       <div className="lg:w-1/2">
         <div className="max-w-md mx-auto p-6 border">
           <h1 className="text-xl font-semibold mb-4">Send message</h1>
-          <input type="file" accept=".xlsx" onChange={handleFileUpload} />
+          <input
+            type="file"
+            required
+            accept=".xlsx"
+            onChange={handleFileUpload}
+            className="text-white " 
+          />
+          {fileName && (
+            <div className="text-sm text-blue-700 py-2 truncate">{fileName}</div>
+          )}
           <div className="flex flex-col">
             <label htmlFor="text" className="text-sm text-gray-500 py-2">
               Template message
@@ -110,6 +119,7 @@ function WhatsappApi() {
               type="text"
               id="text"
               name="text"
+              required
               placeholder="Enter template message"
               className="border-b border-gray-300 py-4 focus:outline-none focus:border-black"
             />
