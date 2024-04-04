@@ -6,16 +6,16 @@ import swal from 'sweetalert';
 function WhatsappApi() {
   const [numbers, setNumbers] = useState([]);
   const [template, setTemplate] = useState('');
-  const [fileName, setFileName] = useState('');
+  const [languageCode, setLanguageCode] = useState('en_US'); // Default language is English
+  const [fileName, setFileName] = useState('No file chosen'); // State variable to store the file name
+  const [sending, setSending] = useState(false); // State variable to track sending status
 
-  const notify = () => swal(
-    {
-      title: 'Messages sent successfully.',
-      icon: 'success',
-      button: 'close',
-      className: 'alert',
-    }
-  );
+  const notify = () => swal({
+    title: 'Messages sent successfully.',
+    icon: 'success',
+    button: 'close',
+    className: 'alert',
+  });
 
   const header = {
     headers: {
@@ -25,18 +25,18 @@ function WhatsappApi() {
   };
 
   useEffect(() => {
-    console.log('Extracted numbers:', numbers); // Move this logging inside the useEffect hook
+    console.log('Extracted numbers:', numbers);
   }, [numbers]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
+    setFileName(file.name); // Update the file name
     const reader = new FileReader();
   
     reader.onload = (event) => {
       const data = new Uint8Array(event.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
   
-      // Assuming the numbers are in the first column of the first sheet
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const range = XLSX.utils.decode_range(sheet['!ref']);
   
@@ -44,19 +44,16 @@ function WhatsappApi() {
       for (let i = range.s.r; i <= range.e.r; i++) {
         const cellAddress = XLSX.utils.encode_cell({ r: i, c: 0 });
         const cell = sheet[cellAddress];
-        if (cell && cell.t === 'n') { // Check if cell contains a number
+        if (cell && (cell.t === 's')) {
           extractedNumbers.push(cell.v);
         }
       }
       
-      setNumbers(extractedNumbers); // Set the extracted numbers
-      setFileName(file.name); // Set the file name
+      setNumbers(extractedNumbers);
     };
   
     reader.readAsArrayBuffer(file);
-  
-    // Clear the input field to force triggering the onChange event
-    e.target.value = null;
+    e.target.value = null; // Clear the input field to force triggering the onChange event
   };
 
   const sendMessage = async () => {
@@ -65,16 +62,18 @@ function WhatsappApi() {
       return;
     }
 
+    setSending(true); // Start sending
+
     try {
       for (const number of numbers) {
         const message = {
           messaging_product: 'whatsapp',
-          to: `212${number}`, 
+          to: number.slice(2,13), 
           type: 'template',
           template: {
             name: template,
             language: {
-              code: 'en_US',
+              code: languageCode, // Use the selected language code
             },
           },
         };
@@ -89,9 +88,10 @@ function WhatsappApi() {
       }
       notify();
       console.log('Messages sent successfully.');
-      
     } catch (error) {
       console.error('Error sending messages:', error);
+    } finally {
+      setSending(false); // Finish sending
     }
   };
 
@@ -100,16 +100,10 @@ function WhatsappApi() {
       <div className="lg:w-1/2">
         <div className="max-w-md mx-auto p-6 border">
           <h1 className="text-xl font-semibold mb-4">Send message</h1>
-          <input
-            type="file"
-            required
-            accept=".xlsx"
-            onChange={handleFileUpload}
-            className="text-white " 
-          />
-          {fileName && (
-            <div className="text-sm text-blue-700 py-2 truncate">{fileName}</div>
-          )}
+          <input type="file" accept=".xlsx" onChange={handleFileUpload} className='text-white'/>
+          <div className="text-blue-700 py-2">
+            {fileName} {/* Display the file name */}
+          </div>
           <div className="flex flex-col">
             <label htmlFor="text" className="text-sm text-gray-500 py-2">
               Template message
@@ -119,17 +113,33 @@ function WhatsappApi() {
               type="text"
               id="text"
               name="text"
-              required
               placeholder="Enter template message"
-              className="border-b border-gray-300 py-4 focus:outline-none focus:border-black"
+              className="border-b border-gray-300 py-3 focus:outline-none focus:border-black"
             />
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="language" className="text-sm text-gray-500 py-2">
+              Template Language
+            </label>
+            <select
+              id="language"
+              name="language"
+              value={languageCode}
+              onChange={(e) => setLanguageCode(e.target.value)}
+              className="border border-gray-300 p-3 my-2 focus:outline-none focus:border-black"
+            >
+              <option value="en_US">English</option>
+              <option value="fr_FR">French</option>
+              <option value="ar_AR">Arabic</option>
+            </select>
           </div>
           <button
             type="button"
-            className="bg-black text-white py-2 px-4 w-full hover:bg-gray-800 transition-colors"
+            disabled={sending} // Disable the button while sending
+            className={`bg-black text-white py-2 px-4 w-full hover:bg-gray-800 transition-colors ${sending && 'opacity-50 cursor-not-allowed'}`}
             onClick={sendMessage}
           >
-            Submit
+            {sending ? 'Sending messages...' : 'Submit'}
           </button>
         </div>
       </div>
