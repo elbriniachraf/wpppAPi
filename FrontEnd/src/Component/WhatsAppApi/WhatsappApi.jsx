@@ -84,7 +84,7 @@ function WhatsappApi() {
       return;
     }
     if (!template) {
-      setTemplateError('Please enter a template message.');
+      setTemplateError('Please enter a template name.');
       return;
     }
 
@@ -122,7 +122,7 @@ function WhatsappApi() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 border">
+    <div className="max-w-md mx-auto mt-10 p-6 border">
       <h1 className="text-xl font-semibold mb-4">Send message</h1>
       <input type="file" accept=".xlsx" onChange={handleFileUpload} className='text-white'/>
       {fileError && <div className="text-red-600">{fileError}</div>}
@@ -131,14 +131,14 @@ function WhatsappApi() {
       </div>
       <div className="flex flex-col">
         <label htmlFor="text" className="text-sm text-gray-500 py-2">
-          Template message
+          Template name
         </label>
         <input
           onChange={(e) => setTemplate(e.target.value)}
           type="text"
           id="text"
           name="text"
-          placeholder="Enter template message"
+          placeholder="Enter template name"
           className="border-b border-gray-300 py-3 focus:outline-none focus:border-black"
         />
         {templateError && <div className="text-red-600">{templateError}</div>}
