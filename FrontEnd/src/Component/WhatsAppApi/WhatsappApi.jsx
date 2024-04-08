@@ -34,6 +34,23 @@ function WhatsappApi() {
     },
   };
 
+  const handleFileUploadTemplate = async (e) => {
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append('image', file);
+    console.log(formData.get("image") );
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/upload-image', formData,{
+        withCredentials: true
+      });
+      console.log('Image uploaded successfully:', response.data);
+      
+    } catch (error) {
+      console.error('Error uploading image:', error);
+     
+    }
+  };
+  
   useEffect(() => {
     console.log('Extracted numbers:', numbers);
   }, [numbers]);
@@ -44,7 +61,7 @@ function WhatsappApi() {
       setFileError('Please select a file.');
       return;
     }
-    setFileName(file.name); // Update the file name
+    setFileName(file.name);
     const reader = new FileReader();
 
     reader.onload = (event) => {
@@ -101,8 +118,22 @@ function WhatsappApi() {
             language: {
               code: languageCode,
             },
-          },
+            "components": [
+              {
+                "type": "header",
+                "parameters": [
+                  {
+                    "type": "image",
+                    "image": {
+                      "link": "https://res.cloudinary.com/dfin3vmgz/image/upload/v1712329269/8d75ab66-6b30-4a24-84f6-b84768fc2783_fwpot7.jpg"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
         };
+        
         console.log(message);
         await axios.post(
           `https://graph.facebook.com/${process.env.REACT_APP_VERSION_API}/${process.env.REACT_APP_PHONE_NUMBER_ID}/messages`,
@@ -124,13 +155,14 @@ function WhatsappApi() {
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border">
       <h1 className="text-xl font-semibold mb-4">Send message</h1>
+      <form action="http://127.0.0.1:8000/upload-image" method="POST" encType="multipart/form-data">
       <input type="file" accept=".xlsx" onChange={handleFileUpload} className='text-white'/>
       {fileError && <div className="text-red-600">{fileError}</div>}
       <div className="text-blue-700 py-2">
-        {fileName} {/* Display the file name */}
+        {fileName} 
       </div>
       <div className="flex flex-col">
-        <label htmlFor="text" className="text-sm text-gray-500 py-2">
+        <label htmlFor="text" className="text-sm text-black-500 py-2">
           Template name
         </label>
         <input
@@ -144,7 +176,7 @@ function WhatsappApi() {
         {templateError && <div className="text-red-600">{templateError}</div>}
       </div>
       <div className="flex flex-col">
-        <label htmlFor="language" className="text-sm text-gray-500 py-2">
+        <label htmlFor="language" className="text-sm text-black-500 py-2">
           Template Language
         </label>
         <select
@@ -159,6 +191,9 @@ function WhatsappApi() {
           <option value="ar">Arabic</option>
         </select>
       </div>
+      <label htmlFor="file">Upload (image, file(pdf) or video) </label>
+<input type="file" accept=".png, .jpg, .jpeg" onChange={handleFileUploadTemplate} max={1} className="border border-gray-300 p-3 my-3 focus:outline-none focus:border-black"/>
+
       <button
         type="button"
         disabled={sending} // Disable the button while sending
@@ -167,6 +202,7 @@ function WhatsappApi() {
       >
         {sending ? 'Sending messages...' : 'Submit'}
       </button>
+      </form>
     </div>
   );
 }

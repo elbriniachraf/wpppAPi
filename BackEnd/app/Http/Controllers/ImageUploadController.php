@@ -1,14 +1,9 @@
 <?php
+
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
-
-abstract class Controller
-{
-    //
-}
-
-
 
 class ImageUploadController extends Controller
 {
@@ -25,4 +20,3 @@ class ImageUploadController extends Controller
         ]);
     }
 }
-
