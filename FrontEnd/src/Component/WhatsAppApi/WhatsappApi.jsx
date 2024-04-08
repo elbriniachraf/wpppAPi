@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import * as XLSX from 'xlsx';
 import swal from 'sweetalert';
 
@@ -11,6 +11,7 @@ function WhatsappApi() {
   const [sending, setSending] = useState(false); 
   const [fileError, setFileError] = useState(''); 
   const [templateError, setTemplateError] = useState(''); 
+  const [imageUrl, setImageUrl] = useState('');
 
   const notifyFailure = () => swal({
     title: 'Message sending failed.',
@@ -33,27 +34,6 @@ function WhatsappApi() {
       Accept: 'application/json',
     },
   };
-
-  const handleFileUploadTemplate = async (e) => {
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append('image', file);
-    console.log(formData.get("image") );
-    try {
-      const response = await axios.post('http://127.0.0.1:8000/upload-image', formData,{
-        withCredentials: true
-      });
-      console.log('Image uploaded successfully:', response.data);
-      
-    } catch (error) {
-      console.error('Error uploading image:', error);
-     
-    }
-  };
-  
-  useEffect(() => {
-    console.log('Extracted numbers:', numbers);
-  }, [numbers]);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -88,8 +68,11 @@ function WhatsappApi() {
     };
 
     reader.readAsArrayBuffer(file);
-    e.target.value = null; // Clear the input field to force triggering the onChange event
+    e.target.value = null; 
   };
+  useEffect(() => {
+    console.log('Extracted numbers:', numbers);
+  }, [numbers]);
 
   const sendMessage = async () => {
     // Clear previous errors
@@ -105,11 +88,11 @@ function WhatsappApi() {
       return;
     }
 
-    setSending(true); // Start sending
+    setSending(true); 
 
     try {
       for (const number of numbers) {
-        const message = {
+        let message = {
           messaging_product: 'whatsapp',
           to: number.slice(2, 14),
           type: 'template',
@@ -117,24 +100,51 @@ function WhatsappApi() {
             name: template,
             language: {
               code: languageCode,
-            },
-            "components": [
-              {
-                "type": "header",
-                "parameters": [
-                  {
-                    "type": "image",
-                    "image": {
-                      "link": "https://res.cloudinary.com/dfin3vmgz/image/upload/v1712329269/8d75ab66-6b30-4a24-84f6-b84768fc2783_fwpot7.jpg"
-                    }
-                  }
-                ]
-              }
-            ]
+            }
           }
         };
-        
-        console.log(message);
+  
+        if (imageUrl) {
+          
+          message = {
+                      messaging_product: 'whatsapp',
+                      to: number.slice(2, 14),
+                      type: 'template',
+                      template: {
+                        name: template,
+                        language: {
+                          code: languageCode,
+                        },
+                        "components": [
+                          {
+                            "type": "header",
+                            "parameters": [
+                              {
+                                "type": "image",
+                                "image": {
+                                  "link": imageUrl 
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    };
+        } else {
+          message = {
+            messaging_product: 'whatsapp',
+            to: number.slice(2, 14),
+            type: 'template',
+            template: {
+              name: template,
+              language: {
+                code: languageCode,
+              }
+            }
+          };
+        }
+  
+        console.log('Sending message:', message);
         await axios.post(
           `https://graph.facebook.com/${process.env.REACT_APP_VERSION_API}/${process.env.REACT_APP_PHONE_NUMBER_ID}/messages`,
           message,
@@ -148,14 +158,13 @@ function WhatsappApi() {
       notifyFailure();
       console.error('Error sending messages:', error);
     } finally {
-      setSending(false); // Finish sending
+      setSending(false); 
     }
   };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border">
       <h1 className="text-xl font-semibold mb-4">Send message</h1>
-      <form action="http://127.0.0.1:8000/upload-image" method="POST" encType="multipart/form-data">
       <input type="file" accept=".xlsx" onChange={handleFileUpload} className='text-white'/>
       {fileError && <div className="text-red-600">{fileError}</div>}
       <div className="text-blue-700 py-2">
@@ -191,18 +200,28 @@ function WhatsappApi() {
           <option value="ar">Arabic</option>
         </select>
       </div>
-      <label htmlFor="file">Upload (image, file(pdf) or video) </label>
-<input type="file" accept=".png, .jpg, .jpeg" onChange={handleFileUploadTemplate} max={1} className="border border-gray-300 p-3 my-3 focus:outline-none focus:border-black"/>
+      <div className="flex flex-col">
+        <label htmlFor="image" className="text-sm text-black-500 py-2">
+          Image URL
+        </label>
+        <input
+          onChange={(e) => setImageUrl(e.target.value)}
+          type="text"
+          id="image"
+          name="image"
+          placeholder="Enter image URL"
+          className="border-b border-gray-300 py-3 focus:outline-none focus:border-black my-2"
+        />
+      </div>
 
       <button
         type="button"
-        disabled={sending} // Disable the button while sending
+        disabled={sending}
         className={`bg-black text-white py-2 px-4 w-full hover:bg-gray-800 transition-colors ${sending && 'opacity-50 cursor-not-allowed'}`}
         onClick={sendMessage}
       >
         {sending ? 'Sending messages...' : 'Submit'}
       </button>
-      </form>
     </div>
   );
 }

@@ -31,6 +31,14 @@
           "video": {
             "link": "https://www.example.com/your-video.mp4"
           }
+        },
+        {
+          "type": "text",
+          "text": "{variable1}"
+        },
+        {
+          "type": "text",
+          "text": "{variable2}"
         }
       ]
     }
@@ -50,6 +58,14 @@
           "file": {
             "link": "https://www.example.com/your-file.pdf"
           }
+        },
+        {
+          "type": "text",
+          "text": "{variable1}"
+        },
+        {
+          "type": "text",
+          "text": "{variable2}"
         }
       ]
     }
@@ -69,6 +85,14 @@
           "image": {
             "link": "https://www.example.com/your-image.png"
           }
+        },
+        {
+          "type": "text",
+          "text": "{variable1}"
+        },
+        {
+          "type": "text",
+          "text": "{variable2}"
         }
       ]
     }
@@ -85,18 +109,14 @@
       "components": [
         {
           "type": "text",
-          "parameters": [
-            {
-              "type": "text",
-              "text": "John"
-            },
-            {
-              "type": "text",
-              "text": "12345"
-            }
-          ]
+          "text": "{variable1}"
+        },
+        {
+          "type": "text",
+          "text": "{variable2}"
         }
       ]
     }
   }
+  
 ]
