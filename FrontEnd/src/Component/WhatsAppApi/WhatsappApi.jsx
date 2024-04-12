@@ -84,10 +84,7 @@ function WhatsappApi() {
     e.target.value = null;
   };
 
-  useEffect(() => {
-    console.log('Extracted numbers:', numbers);
-    
-  }, [numbers]);
+  
 
   const sendMessage = async () => {
     setFileError('');
@@ -156,13 +153,13 @@ function WhatsappApi() {
             header
           );
           setTotalSuccess((prev) => prev + 1);
-          console.log('Message sent to', number);
+          
           notifySuccess();
-          console.log('Messages sent successfully');
+         
         } catch (error) {
           setTotalFailed((prev) => prev + 1);
           notifyFailureMsg();
-          console.error('Error sending message to', number, ':', error);
+        
           
         }
       }
