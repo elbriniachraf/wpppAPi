@@ -12,6 +12,8 @@ function WhatsappApi() {
   const [fileError, setFileError] = useState('');
   const [templateError, setTemplateError] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [totalSuccess, setTotalSuccess] = useState(0); // State for total success
+  const [totalFailed, setTotalFailed] = useState(0); 
 
   const notifyFailureMsg = () =>
     swal({
@@ -84,11 +86,14 @@ function WhatsappApi() {
 
   useEffect(() => {
     console.log('Extracted numbers:', numbers);
+    
   }, [numbers]);
 
   const sendMessage = async () => {
     setFileError('');
     setTemplateError('');
+    setTotalSuccess(0);
+    setTotalFailed(0);
 
     if (numbers.length === 0) {
       setFileError('No numbers extracted.');
@@ -150,11 +155,12 @@ function WhatsappApi() {
             message,
             header
           );
-          
+          setTotalSuccess((prev) => prev + 1);
           console.log('Message sent to', number);
           notifySuccess();
           console.log('Messages sent successfully');
         } catch (error) {
+          setTotalFailed((prev) => prev + 1);
           notifyFailureMsg();
           console.error('Error sending message to', number, ':', error);
           
@@ -170,7 +176,8 @@ function WhatsappApi() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 p-6 border">
+    <div className='flex justify-center sm:flex-row flex-col gap-4'>
+    <div className="max-w-md  mt-10 p-6 border">
       <h1 className="text-xl font-semibold mb-4">Send message</h1>
       <input
         type="file"
@@ -236,6 +243,12 @@ function WhatsappApi() {
       >
         {sending ? 'Sending messages...' : 'Submit'}
       </button>
+    </div>
+    <div className='max-w-md  mt-10 p-6 '>
+        <h1 className='font-semibold'>Statistics : </h1>
+        <h5>Total send with success: <span className='font-semibold text-green-600'>{totalSuccess}</span></h5>
+        <h5>Total send with Failed: <span className='font-semibold text-red-600'>{totalFailed}</span> </h5>
+    </div>
     </div>
   );
 }
