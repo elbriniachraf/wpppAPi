@@ -1,32 +1,43 @@
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import React, { useState, useEffect} from 'react';
 import * as XLSX from 'xlsx';
 import swal from 'sweetalert';
 
 function WhatsappApi() {
   const [numbers, setNumbers] = useState([]);
   const [template, setTemplate] = useState('');
-  const [languageCode, setLanguageCode] = useState('en_US'); 
-  const [fileName, setFileName] = useState('No file chosen'); 
-  const [sending, setSending] = useState(false); 
-  const [fileError, setFileError] = useState(''); 
-  const [templateError, setTemplateError] = useState(''); 
+  const [languageCode, setLanguageCode] = useState('en_US');
+  const [fileName, setFileName] = useState('No file chosen');
+  const [sending, setSending] = useState(false);
+  const [fileError, setFileError] = useState('');
+  const [templateError, setTemplateError] = useState('');
   const [imageUrl, setImageUrl] = useState('');
 
-  const notifyFailure = () => swal({
-    title: 'Message sending failed.',
-    text: 'There was an error while sending messages.',
-    icon: 'error',
-    button: 'close',
-    className: 'alert',
-  });
+  const notifyFailureMsg = () =>
+    swal({
+      title: 'Message sending failed.',
+      text: 'There was an error while sending message.',
+      icon: 'error',
+      button: 'close',
+      className: 'alert',
+    });
 
-  const notifySuccess = () => swal({
-    title: 'Messages sent successfully.',
-    icon: 'success',
-    button: 'close',
-    className: 'alert',
-  });
+  const notifyFailure = () =>
+    swal({
+      title: 'Message sending failed.',
+      text: 'There was an error while sending messages.',
+      icon: 'error',
+      button: 'close',
+      className: 'alert',
+    });
+
+  const notifySuccess = () =>
+    swal({
+      title: 'Messages sent successfully.',
+      icon: 'success',
+      button: 'close',
+      className: 'alert',
+    });
 
   const header = {
     headers: {
@@ -68,14 +79,14 @@ function WhatsappApi() {
     };
 
     reader.readAsArrayBuffer(file);
-    e.target.value = null; 
+    e.target.value = null;
   };
+
   useEffect(() => {
     console.log('Extracted numbers:', numbers);
   }, [numbers]);
 
   const sendMessage = async () => {
-    // Clear previous errors
     setFileError('');
     setTemplateError('');
 
@@ -88,48 +99,37 @@ function WhatsappApi() {
       return;
     }
 
-    setSending(true); 
+    setSending(true);
 
     try {
       for (const number of numbers) {
-        let message = {
-          messaging_product: 'whatsapp',
-          to: number.slice(2, 14),
-          type: 'template',
-          template: {
-            name: template,
-            language: {
-              code: languageCode,
-            }
-          }
-        };
-  
+        let message;
+
         if (imageUrl) {
-          
           message = {
-                      messaging_product: 'whatsapp',
-                      to: number.slice(2, 14),
-                      type: 'template',
-                      template: {
-                        name: template,
-                        language: {
-                          code: languageCode,
-                        },
-                        "components": [
-                          {
-                            "type": "header",
-                            "parameters": [
-                              {
-                                "type": "image",
-                                "image": {
-                                  "link": imageUrl 
-                                }
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    };
+            messaging_product: 'whatsapp',
+            to: number.slice(2, 14),
+            type: 'template',
+            template: {
+              name: template,
+              language: {
+                code: languageCode,
+              },
+              components: [
+                {
+                  type: 'header',
+                  parameters: [
+                    {
+                      type: 'image',
+                      image: {
+                        link: imageUrl,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          };
         } else {
           message = {
             messaging_product: 'whatsapp',
@@ -139,37 +139,47 @@ function WhatsappApi() {
               name: template,
               language: {
                 code: languageCode,
-              }
-            }
+              },
+            },
           };
         }
-  
-        console.log('Sending message:', message);
-        await axios.post(
-          `https://graph.facebook.com/${process.env.REACT_APP_VERSION_API}/${process.env.REACT_APP_PHONE_NUMBER_ID}/messages`,
-          message,
-          header
-        );
-        notifySuccess();
-        console.log('Message sent to', number);
+
+        try {
+          await axios.post(
+            `https://graph.facebook.com/${process.env.REACT_APP_VERSION_API}/${process.env.REACT_APP_PHONE_NUMBER_ID}/messages`,
+            message,
+            header
+          );
+          
+          console.log('Message sent to', number);
+          notifySuccess();
+          console.log('Messages sent successfully');
+        } catch (error) {
+          notifyFailureMsg();
+          console.error('Error sending message to', number, ':', error);
+          
+        }
       }
-      console.log('Messages sent successfully.');
+      
     } catch (error) {
       notifyFailure();
-      console.error('Error sending messages:', error);
+      console.error('An unexpected error occurred:', error);
     } finally {
-      setSending(false); 
+      setSending(false);
     }
   };
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 border">
       <h1 className="text-xl font-semibold mb-4">Send message</h1>
-      <input type="file" accept=".xlsx" onChange={handleFileUpload} className='text-white'/>
+      <input
+        type="file"
+        accept=".xlsx"
+        onChange={handleFileUpload}
+        className="text-white"
+      />
       {fileError && <div className="text-red-600">{fileError}</div>}
-      <div className="text-blue-700 py-2">
-        {fileName} 
-      </div>
+      <div className="text-blue-700 py-2">{fileName}</div>
       <div className="flex flex-col">
         <label htmlFor="text" className="text-sm text-black-500 py-2">
           Template name
@@ -182,7 +192,9 @@ function WhatsappApi() {
           placeholder="Enter template name"
           className="border-b border-gray-300 py-3 focus:outline-none focus:border-black"
         />
-        {templateError && <div className="text-red-600">{templateError}</div>}
+        {templateError && (
+          <div className="text-red-600">{templateError}</div>
+        )}
       </div>
       <div className="flex flex-col">
         <label htmlFor="language" className="text-sm text-black-500 py-2">
@@ -217,7 +229,9 @@ function WhatsappApi() {
       <button
         type="button"
         disabled={sending}
-        className={`bg-black text-white py-2 px-4 w-full hover:bg-gray-800 transition-colors ${sending && 'opacity-50 cursor-not-allowed'}`}
+        className={`bg-black text-white py-2 px-4 w-full hover:bg-gray-800 transition-colors ${
+          sending && 'opacity-50 cursor-not-allowed'
+        }`}
         onClick={sendMessage}
       >
         {sending ? 'Sending messages...' : 'Submit'}
