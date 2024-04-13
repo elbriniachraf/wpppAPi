@@ -12,6 +12,7 @@ function WhatsappApi() {
   const [fileError, setFileError] = useState('');
   const [templateError, setTemplateError] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [totalSuccess, setTotalSuccess] = useState(0); // State for total success
   const [totalFailed, setTotalFailed] = useState(0); 
 
@@ -132,7 +133,33 @@ function WhatsappApi() {
               ],
             },
           };
-        } else {
+        }else if (videoUrl){
+          message = {
+            messaging_product: 'whatsapp',
+            to: number.slice(2, 14),
+            type: 'template',
+            template: {
+              name: template,
+              language: {
+                code: languageCode,
+              },
+              components: [
+                {
+                  type: 'header',
+                  parameters: [
+                    {
+                      type: 'video',
+                      video: {
+                        link: videoUrl,
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          };
+        }
+         else {
           message = {
             messaging_product: 'whatsapp',
             to: number.slice(2, 14),
@@ -155,7 +182,7 @@ function WhatsappApi() {
           setTotalSuccess((prev) => prev + 1);
           
           notifySuccess();
-         
+        
         } catch (error) {
           setTotalFailed((prev) => prev + 1);
           notifyFailureMsg();
@@ -183,7 +210,7 @@ function WhatsappApi() {
         className="text-white"
       />
       {fileError && <div className="text-red-600">{fileError}</div>}
-      <div className="text-blue-700 py-2">{fileName}</div>
+      <div className="text-purple-600 py-2">{fileName}</div>
       <div className="flex flex-col">
         <label htmlFor="text" className="text-sm text-black-500 py-2">
           Template name
@@ -217,7 +244,7 @@ function WhatsappApi() {
         </select>
       </div>
       <div className="flex flex-col">
-        <label htmlFor="image" className="text-sm text-black-500 py-2">
+        <label htmlFor="image" className="text-sm text-black-500 pt-2">
           Image URL
         </label>
         <input
@@ -226,14 +253,28 @@ function WhatsappApi() {
           id="image"
           name="image"
           placeholder="Enter image URL"
-          className="border-b border-gray-300 py-3 focus:outline-none focus:border-black my-2"
+          className="border-b border-gray-300 py-1 focus:outline-none focus:border-black my-2"
+        />
+      </div>
+
+      <div className="flex flex-col">
+        <label htmlFor="video" className="text-sm text-black-500 pt-2">
+          Video URL
+        </label>
+        <input
+          onChange={(e) => setVideoUrl(e.target.value)}
+          type="text"
+          id="video"
+          name="video"
+          placeholder="Enter video URL"
+          className="border-b border-gray-300 py-1 focus:outline-none focus:border-black my-2"
         />
       </div>
 
       <button
         type="button"
         disabled={sending}
-        className={`bg-black text-white py-2 px-4 w-full hover:bg-gray-800 transition-colors ${
+        className={`bg-purple-600 text-white py-2 px-4 w-full hover:bg-purple-800 transition-colors ${
           sending && 'opacity-50 cursor-not-allowed'
         }`}
         onClick={sendMessage}
